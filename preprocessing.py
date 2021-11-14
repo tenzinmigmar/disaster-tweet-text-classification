@@ -1,5 +1,6 @@
 # --- Importing dependencies
 import pandas as pd
+import json
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
@@ -24,9 +25,6 @@ class Preprocessing():
 
         Preprocessing.tweet_id += 1
 
-    def __len__(self):
-        return len(self.tokens)
-
     def return_data(self):
         return [tweet.lower() for tweet in self.input['text']]
 
@@ -46,16 +44,25 @@ class Preprocessing():
         self.remove_stopwords()
         return [token for token in self.remove_stopwords() if token.isalnum()]
 
-    def stemming(self):
+    def remove_http(self):
         self.remove_special_chars()
+        return [token for token in self.remove_special_chars() if 'http' not in token]
+
+    def stemming(self):
+        self.remove_http()
         stemmer = PorterStemmer()
-        return [stemmer.stem(token) for token in self.remove_special_chars()]
+        return [stemmer.stem(token) for token in self.remove_http()]
 
     def lemmatize(self):
         self.stemming()
         lemmatizer = WordNetLemmatizer()
-        return [lemmatizer.lemmatize(token) for token in self.stemming()]
+        return ' '.join([lemmatizer.lemmatize(token) for token in self.stemming()])
 
 ### -- Creating objects
-corpus = [Preprocessing('data/train (1).csv').tokens for i in range(train_data.shape[0])]
-print(corpus)
+if __name__ == '__main__':
+    corpus = [Preprocessing('data/train (1).csv').tokens for i in range(train_data.shape[0])]
+    print(corpus)
+
+### --- Writing to txt file
+with open('corpus.txt', 'w') as f:
+    f.write(json.dumps(corpus))
